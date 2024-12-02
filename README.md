@@ -3,8 +3,8 @@
 
 ## 제작진
 - [이우탁](https://github.com/WooTak123)
-- [김대관](https://github.com/)
-- [고아담](https://github.com/)
+- [김대관](https://github.com/daepan)
+- [고아담](https://github.com/bara25565)
 ## 개발 표준
 ### 언어 및 개발환경
 - 게임 엔진: Unity 6
