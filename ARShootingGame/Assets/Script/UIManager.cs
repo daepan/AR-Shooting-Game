@@ -7,6 +7,7 @@ public class UIManager : MonoBehaviour
 {
     public GameObject mainMenu;
     public GameObject gameMode;
+    public GameObject howtoPlay;
 
     public void StartGame()
     {
@@ -22,6 +23,22 @@ public class UIManager : MonoBehaviour
         gameMode.SetActive(false);
 
         // main menu scene on
+        mainMenu.SetActive(true);
+    }
+
+    public void StartHowToPlay()
+    {
+        // main menu scene off
+        mainMenu.SetActive(false);
+
+        // game mode scene on
+        howtoPlay.SetActive(true);
+    }
+
+    public void InHowtoReturnToMain()
+    {
+        howtoPlay.SetActive(false);
+
         mainMenu.SetActive(true);
     }
 }
