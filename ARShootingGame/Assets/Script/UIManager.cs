@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,6 +9,7 @@ public class UIManager : MonoBehaviour
     public GameObject howtoPlay;
     public Camera arCamera; // AR 카메라
     public GameObject targetObject; // TargetObject 프리팹 (TargetCube와 Canvas 포함)
+    public Vector3 offset;
     private GameObject currentTarget; // 생성된 TargetObject
 
     private bool isTargetPlaced = false; // 타겟이 고정되었는지 여부
@@ -73,17 +73,28 @@ public class UIManager : MonoBehaviour
         isTargetPlaced = false;
     }
 
+    private void Start()
+    {
+        // 3D 오브젝트를 카메라의 자식으로 설정
+        targetObject.transform.SetParent(arCamera.transform);
+        // 초기 위치 오프셋 설정
+        targetObject.transform.localPosition = offset;
+    }
+
+    private void Update()
+    {
+        // 카메라의 위치에 따라 오브젝트의 위치를 업데이트
+        targetObject.transform.position = arCamera.transform.position + offset;
+        targetObject.transform.LookAt(arCamera.transform); // 카메라를 바라보도록 회전
+    }
+
     private void CreateTargetObject()
     {
         if (currentTarget == null)
         {
-            // 타겟 생성 및 카메라 앞에 배치
-            UnityEngine.Vector3 targetPosition = arCamera.transform.position + arCamera.transform.forward * 0.5f;
-            currentTarget = Instantiate(targetObject, targetPosition, UnityEngine.Quaternion.identity);
-
-            // 카메라의 방향으로 회전
-            currentTarget.transform.LookAt(arCamera.transform);
-            currentTarget.transform.parent = arCamera.transform; // 카메라와 함께 움직이도록 설정
+            // 타겟 생성 및 카메라 앞에 초기 배치
+            Vector3 targetPosition = arCamera.transform.position + arCamera.transform.forward * 0.5f;
+            currentTarget = Instantiate(targetObject, targetPosition, Quaternion.identity);
 
             // Canvas 안의 버튼 활성화
             Button placeButton = currentTarget.GetComponentInChildren<Button>();
@@ -98,11 +109,10 @@ public class UIManager : MonoBehaviour
 
     public void PlaceTarget()
     {
-        UnityEngine.Debug.Log("타겟 오브젝트 위치고정 이벤트 활성!");
+        UnityEngine.Debug.Log("타겟 오브젝트 위치 고정 이벤트 활성!");
         if (currentTarget != null && !isTargetPlaced)
         {
-            // 타겟 고정 (카메라 종속 해제)
-            currentTarget.transform.parent = null;
+            // 타겟 고정
             isTargetPlaced = true;
 
             // Canvas 안의 버튼 비활성화
@@ -114,5 +124,11 @@ public class UIManager : MonoBehaviour
 
             UnityEngine.Debug.Log("타겟 오브젝트 위치 고정!");
         }
+    }
+
+    public void ExitApplication()
+    {
+        // 빌드된 애플리케이션에서 종료
+        Application.Quit();
     }
 }
