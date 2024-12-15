@@ -1,113 +1,102 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.UI;
-using System.Collections; // Coroutine에 필요한 네임스페이스
-
+using System.Collections;
+using System.Collections.Generic;
 
 public class ReactionModeManager : MonoBehaviour
 {
-    public GameObject[] targets;          // 타겟 배열 (B1 ~ B16 오브젝트)
-    public Material defaultMaterial;      // 기본 상태 Material
-    public Material highlightedMaterial;  // 점등 상태 Material
-    public GameObject aimUI;              // 화면 중앙의 에임 UI
-    public GameObject gunUI;              // 화면 하단의 권총 UI
-    public Camera mainCamera;             // AR 카메라
-    private bool isAiming = false;        // 에임 활성화 여부
-    private GameObject currentTarget = null; // 현재 점등된 타겟
-    private bool isGameActive = false;    // 게임 진행 상태
-    private int score = 0;                // 플레이어 점수
-
-    private void Start()
-    {
-        aimUI.SetActive(false); // 초기 상태에서 에임 비활성화
-    }
+    public GameObject matrixObject; // 기존 Matrix 오브젝트
+    private bool isReactionModeActive = false; // Reaction Mode 활성화 여부
 
     public void StartReactionMode()
     {
-        Debug.Log("순발력 모드 시작!");
-        isGameActive = true;
-        StartCoroutine(GameRoutine());
+        if (matrixObject == null)
+        {
+            Debug.LogError("Matrix 오브젝트가 설정되지 않았습니다.");
+            return;
+        }
+
+        // Matrix 오브젝트 활성화
+        matrixObject.SetActive(true);
+        isReactionModeActive = true;
+
+        // 랜덤 활성화 코루틴 시작
+        StartCoroutine(ActivateTargetsRoutine());
+
+        Debug.Log("Reaction Mode 시작: Matrix 활성화 완료");
     }
 
-    private IEnumerator GameRoutine()
+    public void StopReactionMode()
     {
-        while (isGameActive)
+        if (matrixObject != null)
         {
+            // Matrix 오브젝트 비활성화
+            matrixObject.SetActive(false);
+        }
+
+        isReactionModeActive = false;
+
+        // 모든 코루틴 정지
+        StopAllCoroutines();
+
+        Debug.Log("Reaction Mode 종료: Matrix 비활성화 완료");
+    }
+
+    private IEnumerator ActivateTargetsRoutine()
+    {
+        float elapsedTime = 0f; // 경과 시간
+        float interval = 3f;    // 초기 간격
+
+        while (isReactionModeActive)
+        {
+            // 경과 시간에 따라 간격 조정
+            if (elapsedTime > 30f)
+            {
+                interval = 2f; // 30초 이후에는 2초 간격
+            }
+
+            // 랜덤으로 "_on"이 포함된 자식 오브젝트 활성화
             ActivateRandomTarget();
-            yield return new WaitForSeconds(3f);
-            DeactivateTarget();
+
+            // 대기 후 경과 시간 증가
+            yield return new WaitForSeconds(interval);
+            elapsedTime += interval;
         }
     }
 
     private void ActivateRandomTarget()
     {
-        // 기존 타겟 점등 해제
-        if (currentTarget != null)
+        // 자식 오브젝트 중 "_on"이 포함된 이름의 오브젝트만 선택
+        Transform[] children = matrixObject.GetComponentsInChildren<Transform>(true);
+        if (children.Length == 0) return;
+
+        // "_on"이 포함된 자식 오브젝트 필터링
+        List<Transform> onChildren = new List<Transform>();
+        foreach (Transform child in children)
         {
-            DeactivateTarget();
-        }
-
-        // 랜덤으로 타겟 선택
-        int randomIndex = Random.Range(0, targets.Length);
-        currentTarget = targets[randomIndex];
-
-        // 타겟 점등
-        MeshRenderer renderer = currentTarget.GetComponent<MeshRenderer>();
-        if (renderer != null)
-        {
-            renderer.material = highlightedMaterial; // 점등 상태 Material 적용
-        }
-
-        Debug.Log($"{currentTarget.name} 점등됨!");
-    }
-
-    private void DeactivateTarget()
-    {
-        if (currentTarget != null)
-        {
-            // 기본 상태로 변경
-            MeshRenderer renderer = currentTarget.GetComponent<MeshRenderer>();
-            if (renderer != null)
+            if (child.name.Contains("_on") && !child.gameObject.activeSelf)
             {
-                renderer.material = defaultMaterial; // 기본 상태 Material 적용
-            }
-
-            Debug.Log($"{currentTarget.name} 비활성화됨!");
-            currentTarget = null;
-        }
-    }
-
-    public void OnGunPressed()
-    {
-        // 권총 터치 시 에임 활성화
-        isAiming = true;
-        aimUI.SetActive(true);
-        Debug.Log("에임 활성화됨!");
-    }
-
-    public void OnScreenTouched(Vector2 touchPosition)
-    {
-        if (!isAiming || !isGameActive) return;
-
-        // 터치 위치를 기준으로 Raycast 수행
-        Ray ray = mainCamera.ScreenPointToRay(new Vector3(touchPosition.x, touchPosition.y, 0));
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            if (hit.collider.gameObject == currentTarget)
-            {
-                // 타겟 명중
-                Debug.Log("타겟 명중!");
-                score += 1; // 점수 증가
-                DeactivateTarget();
-            }
-            else
-            {
-                Debug.Log("타겟을 맞추지 못했습니다.");
+                onChildren.Add(child);
             }
         }
 
-        // 에임 비활성화
-        isAiming = false;
-        aimUI.SetActive(false);
+        // "_on" 자식이 없으면 반환
+        if (onChildren.Count == 0)
+        {
+            Debug.LogWarning("활성화 가능한 '_on' 자식 오브젝트가 없습니다.");
+            return;
+        }
+
+        // 랜덤으로 하나 선택하여 활성화
+        Transform randomChild = onChildren[Random.Range(0, onChildren.Count)];
+        randomChild.gameObject.SetActive(true);
+
+        // Renderer 활성화
+        Renderer renderer = randomChild.GetComponent<Renderer>();
+        if (renderer != null && !renderer.enabled)
+        {
+            renderer.enabled = true;
+        }
+
+        Debug.Log($"랜덤 활성화: {randomChild.name}");
     }
 }

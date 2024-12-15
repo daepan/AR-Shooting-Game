@@ -2,26 +2,27 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
-    public GameObject mainMenu;          // 메인 메뉴
-    public GameObject gameMode;          // 게임 모드 선택 화면
-    public GameObject howtoPlay;         // How to Play 화면
-    public Camera arCamera;              // AR 카메라
-    public GameObject targetPrefab;      // 타겟 생성용 Prefab
-    public GameObject targetObject;
-    public GameObject canvasUI;          // 과녁 고정 버튼이 있는 Canvas UI
-    public float targetDistance = 10.0f; // 카메라와 타겟 간 거리
-    public Vector3 offset;               // 추가적인 위치 조정
+    public GameObject mainMenu;           // 메인 메뉴
+    public GameObject gameMode;           // 게임 모드 선택 화면
+    public GameObject howtoPlay;          // How to Play 화면
+    public Camera arCamera;               // AR 카메라
+    public GameObject targetPrefab;       // 타겟 생성용 Prefab
+    public GameObject targetObject;       // 타겟 오브젝트
+    public GameObject canvasUI;           // 과녁 고정 버튼이 있는 Canvas UI
+    public GameObject inGameUI;
+    public float targetDistance = 10.0f;  // 카메라와 타겟 간 거리
+    public Vector3 offset;                // 추가적인 위치 조정
     public Vector3 targetScale = new Vector3(0.5f, 0.5f, 0.5f); // 타겟 크기
 
-    private GameObject currentTarget;    // 현재 활성화된 타겟 인스턴스
-    private bool isTargetPlaced = false; // 과녁 고정 여부
-    private string selectedMode = "";    // 선택된 모드
+    private GameObject currentTarget;     // 현재 활성화된 타겟 인스턴스
+    private bool isTargetPlaced = false;  // 과녁 고정 여부
+    private string selectedMode = "";     // 선택된 모드
 
     private void Start()
     {
         canvasUI.SetActive(false); // Canvas UI 숨김
         arCamera.nearClipPlane = 0.01f;
-        arCamera.farClipPlane = 100f;    // 클리핑 제한
+        arCamera.farClipPlane = 100f;     // 클리핑 제한
     }
 
     public void StartGame()
@@ -43,16 +44,6 @@ public class UIManager : MonoBehaviour
         gameMode.SetActive(false);
         ActivateTargetAndUI();
     }
-    private void DebugHierarchy(GameObject target)
-    {
-        Debug.Log($"부모 위치: {target.transform.position}, 회전: {target.transform.rotation.eulerAngles}");
-
-        foreach (Transform child in target.transform)
-        {
-            Debug.Log($"자식 이름: {child.name}, 위치: {child.position}, 로컬 위치: {child.localPosition}");
-        }
-    }
-
 
     private void ActivateTargetAndUI()
     {
@@ -60,28 +51,15 @@ public class UIManager : MonoBehaviour
             Destroy(currentTarget);
 
         // Prefab에서 새로운 타겟 생성
-        currentTarget = Instantiate(targetPrefab);
+        currentTarget = targetPrefab;
         currentTarget.transform.localScale = targetScale;
-
-        // 부모-자식 관계를 설정
-        foreach (Transform child in currentTarget.transform)
-        {
-            child.SetParent(currentTarget.transform, true); // true: 상대적 위치 유지
-        }
 
         targetObject.SetActive(true);
         UpdateTargetPositionAndRotation();
-        foreach (Transform child in currentTarget.transform)
-        {
-            Debug.Log($"자식 이름: {child.name}");
-        }
-        foreach (Transform child in currentTarget.transform)
-        {
-            Debug.Log($"{child.name} 활성 상태: {child.gameObject.activeSelf}");
-        }
         canvasUI.SetActive(true);
         isTargetPlaced = false;
     }
+
     private void Update()
     {
         if (!isTargetPlaced && currentTarget != null)
@@ -89,6 +67,7 @@ public class UIManager : MonoBehaviour
             UpdateTargetPositionAndRotation();
         }
     }
+
     private void UpdateTargetPositionAndRotation()
     {
         if (currentTarget == null) return;
@@ -99,7 +78,6 @@ public class UIManager : MonoBehaviour
 
         // 부모 객체가 카메라를 바라보도록 회전
         LookAtCamera(currentTarget);
-        DebugHierarchy(currentTarget);
     }
 
     private void LookAtCamera(GameObject target)
@@ -120,6 +98,7 @@ public class UIManager : MonoBehaviour
         {
             isTargetPlaced = true;       // 타겟 고정
             canvasUI.SetActive(false);   // Canvas UI 숨김
+            inGameUI.SetActive(true);
             Debug.Log($"타겟 고정 완료! 위치: {currentTarget.transform.position}");
             StartSelectedMode();
         }
@@ -141,11 +120,28 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void CheckHit(string targetName)
+    {
+        GameObject targetOn = currentTarget.transform.Find(targetName + "_on")?.gameObject;
+
+        if (targetOn != null)
+        {
+            // `_on` 상태 활성화
+            targetOn.SetActive(true);
+            Debug.Log($"{targetName}_on 활성화됨!");
+        }
+        else
+        {
+            Debug.LogError($"타겟 {targetName}_on을 찾을 수 없습니다.");
+        }
+    }
+
     public void ReturnToMainMenu()
     {
         mainMenu.SetActive(true);
         gameMode.SetActive(false);
         howtoPlay.SetActive(false);
+        inGameUI.SetActive(false);
 
         if (currentTarget != null)
             Destroy(currentTarget);
