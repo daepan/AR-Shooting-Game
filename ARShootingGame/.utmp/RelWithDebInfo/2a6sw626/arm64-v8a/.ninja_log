@@ -1,3 +1,3 @@
 # ninja log v5
-0	111	1733646344584412650	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	eae6cdb7137cd31c
-112	173	1733646344643330978	/Users/gimdaegwan/Documents/AR-Shooting-Game/ARShootingGame/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/2a6sw626/obj/arm64-v8a/libswappywrapper.so	a983e8915800569c
+0	205	1734169814896675751	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	eae6cdb7137cd31c
+206	290	1734169814976719608	/Users/gimdaegwan/Documents/AR-Shooting-Game/ARShootingGame/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/2a6sw626/obj/arm64-v8a/libswappywrapper.so	a983e8915800569c

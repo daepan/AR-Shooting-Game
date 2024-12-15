@@ -1,134 +1,161 @@
-using System.Diagnostics;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    public GameObject mainMenu;
-    public GameObject gameMode;
-    public GameObject howtoPlay;
-    public Camera arCamera; // AR 카메라
-    public GameObject targetObject; // TargetObject 프리팹 (TargetCube와 Canvas 포함)
-    public Vector3 offset;
-    private GameObject currentTarget; // 생성된 TargetObject
+    public GameObject mainMenu;          // 메인 메뉴
+    public GameObject gameMode;          // 게임 모드 선택 화면
+    public GameObject howtoPlay;         // How to Play 화면
+    public Camera arCamera;              // AR 카메라
+    public GameObject targetPrefab;      // 타겟 생성용 Prefab
+    public GameObject targetObject;
+    public GameObject canvasUI;          // 과녁 고정 버튼이 있는 Canvas UI
+    public float targetDistance = 10.0f; // 카메라와 타겟 간 거리
+    public Vector3 offset;               // 추가적인 위치 조정
+    public Vector3 targetScale = new Vector3(0.5f, 0.5f, 0.5f); // 타겟 크기
 
-    private bool isTargetPlaced = false; // 타겟이 고정되었는지 여부
-
-    public void StartGame()
-    {
-        // 메인 메뉴 끄기
-        mainMenu.SetActive(false);
-
-        // 게임 모드 켜기
-        gameMode.SetActive(true);
-    }
-
-    public void SelectGameMode()
-    {
-        UnityEngine.Debug.Log("게임 모드가 선택되었습니다.");
-        // 게임 모드 끄기
-        gameMode.SetActive(false);
-
-        // AR 카메라 켜기
-        arCamera.gameObject.SetActive(true);
-        targetObject.SetActive(true);
-        // 타겟 생성
-        CreateTargetObject();
-    }
-
-    public void StartHowToPlay()
-    {
-        // 메인 메뉴 끄기
-        mainMenu.SetActive(false);
-
-        // How to Play 켜기
-        howtoPlay.SetActive(true);
-    }
-
-    public void InHowtoReturnToMain()
-    {
-        // How to Play 끄기
-        howtoPlay.SetActive(false);
-
-        // 메인 메뉴 켜기
-        mainMenu.SetActive(true);
-    }
-
-    public void ReturnToMainMenu()
-    {
-        // 메인 메뉴 켜기
-        mainMenu.SetActive(true);
-
-        // 다른 UI 끄기
-        gameMode.SetActive(false);
-        howtoPlay.SetActive(false);
-        arCamera.gameObject.SetActive(false);
-
-        // 생성된 타겟 제거
-        if (currentTarget != null)
-        {
-            Destroy(currentTarget);
-        }
-
-        isTargetPlaced = false;
-    }
+    private GameObject currentTarget;    // 현재 활성화된 타겟 인스턴스
+    private bool isTargetPlaced = false; // 과녁 고정 여부
+    private string selectedMode = "";    // 선택된 모드
 
     private void Start()
     {
-        // 3D 오브젝트를 카메라의 자식으로 설정
-        targetObject.transform.SetParent(arCamera.transform);
-        // 초기 위치 오프셋 설정
-        targetObject.transform.localPosition = offset;
+        canvasUI.SetActive(false); // Canvas UI 숨김
+        arCamera.nearClipPlane = 0.01f;
+        arCamera.farClipPlane = 100f;    // 클리핑 제한
     }
 
+    public void StartGame()
+    {
+        mainMenu.SetActive(false);
+        gameMode.SetActive(true);
+    }
+
+    public void SelectMemoryMode()
+    {
+        selectedMode = "Memory";
+        gameMode.SetActive(false);
+        ActivateTargetAndUI();
+    }
+
+    public void SelectReactionMode()
+    {
+        selectedMode = "Reaction";
+        gameMode.SetActive(false);
+        ActivateTargetAndUI();
+    }
+    private void DebugHierarchy(GameObject target)
+    {
+        Debug.Log($"부모 위치: {target.transform.position}, 회전: {target.transform.rotation.eulerAngles}");
+
+        foreach (Transform child in target.transform)
+        {
+            Debug.Log($"자식 이름: {child.name}, 위치: {child.position}, 로컬 위치: {child.localPosition}");
+        }
+    }
+
+
+    private void ActivateTargetAndUI()
+    {
+        if (currentTarget != null)
+            Destroy(currentTarget);
+
+        // Prefab에서 새로운 타겟 생성
+        currentTarget = Instantiate(targetPrefab);
+        currentTarget.transform.localScale = targetScale;
+
+        // 부모-자식 관계를 설정
+        foreach (Transform child in currentTarget.transform)
+        {
+            child.SetParent(currentTarget.transform, true); // true: 상대적 위치 유지
+        }
+
+        targetObject.SetActive(true);
+        UpdateTargetPositionAndRotation();
+        foreach (Transform child in currentTarget.transform)
+        {
+            Debug.Log($"자식 이름: {child.name}");
+        }
+        foreach (Transform child in currentTarget.transform)
+        {
+            Debug.Log($"{child.name} 활성 상태: {child.gameObject.activeSelf}");
+        }
+        canvasUI.SetActive(true);
+        isTargetPlaced = false;
+    }
     private void Update()
     {
-        // 카메라의 위치에 따라 오브젝트의 위치를 업데이트
-        targetObject.transform.position = arCamera.transform.position + offset;
-        targetObject.transform.LookAt(arCamera.transform); // 카메라를 바라보도록 회전
+        if (!isTargetPlaced && currentTarget != null)
+        {
+            UpdateTargetPositionAndRotation();
+        }
+    }
+    private void UpdateTargetPositionAndRotation()
+    {
+        if (currentTarget == null) return;
+
+        // 부모 객체(Matrix)의 위치를 카메라 정면으로 이동
+        Vector3 targetPosition = arCamera.transform.position + arCamera.transform.forward * targetDistance + offset;
+        currentTarget.transform.position = targetPosition;
+
+        // 부모 객체가 카메라를 바라보도록 회전
+        LookAtCamera(currentTarget);
+        DebugHierarchy(currentTarget);
     }
 
-    private void CreateTargetObject()
+    private void LookAtCamera(GameObject target)
     {
-        if (currentTarget == null)
-        {
-            // 타겟 생성 및 카메라 앞에 초기 배치
-            Vector3 targetPosition = arCamera.transform.position + arCamera.transform.forward * 0.5f;
-            currentTarget = Instantiate(targetObject, targetPosition, Quaternion.identity);
+        // 방향 설정: 카메라를 향하는 방향 계산
+        Vector3 direction = (arCamera.transform.position - target.transform.position).normalized;
 
-            // Canvas 안의 버튼 활성화
-            Button placeButton = currentTarget.GetComponentInChildren<Button>();
-            if (placeButton != null)
-            {
-                placeButton.onClick.AddListener(PlaceTarget); // 버튼 클릭 시 PlaceTarget 메서드 호출
-            }
+        // 타겟(부모)의 회전 설정
+        Quaternion targetRotation = Quaternion.LookRotation(-direction);
 
-            UnityEngine.Debug.Log("타겟 오브젝트 생성 완료!");
-        }
+        // 회전 보정 (필요시 추가)
+        target.transform.rotation = targetRotation * Quaternion.Euler(0, 90, 0);
     }
 
     public void PlaceTarget()
     {
-        UnityEngine.Debug.Log("타겟 오브젝트 위치 고정 이벤트 활성!");
         if (currentTarget != null && !isTargetPlaced)
         {
-            // 타겟 고정
-            isTargetPlaced = true;
-
-            // Canvas 안의 버튼 비활성화
-            Button placeButton = currentTarget.GetComponentInChildren<Button>();
-            if (placeButton != null)
-            {
-                placeButton.gameObject.SetActive(false); // 버튼 비활성화
-            }
-
-            UnityEngine.Debug.Log("타겟 오브젝트 위치 고정!");
+            isTargetPlaced = true;       // 타겟 고정
+            canvasUI.SetActive(false);   // Canvas UI 숨김
+            Debug.Log($"타겟 고정 완료! 위치: {currentTarget.transform.position}");
+            StartSelectedMode();
         }
+    }
+
+    private void StartSelectedMode()
+    {
+        if (selectedMode == "Memory")
+        {
+            Debug.Log("기억력 모드 시작!");
+            MemoryModeManager memoryMode = FindObjectOfType<MemoryModeManager>();
+            memoryMode?.StartMemoryMode();
+        }
+        else if (selectedMode == "Reaction")
+        {
+            Debug.Log("순발력 모드 시작!");
+            ReactionModeManager reactionMode = FindObjectOfType<ReactionModeManager>();
+            reactionMode?.StartReactionMode();
+        }
+    }
+
+    public void ReturnToMainMenu()
+    {
+        mainMenu.SetActive(true);
+        gameMode.SetActive(false);
+        howtoPlay.SetActive(false);
+
+        if (currentTarget != null)
+            Destroy(currentTarget);
+
+        canvasUI.SetActive(false);
+        isTargetPlaced = false;
     }
 
     public void ExitApplication()
     {
-        // 빌드된 애플리케이션에서 종료
         Application.Quit();
     }
 }
