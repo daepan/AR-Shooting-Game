@@ -65,11 +65,9 @@ public class ReactionModeManager : MonoBehaviour
 
     private void ActivateRandomTarget()
     {
-        // 자식 오브젝트 중 "_on"이 포함된 이름의 오브젝트만 선택
         Transform[] children = matrixObject.GetComponentsInChildren<Transform>(true);
         if (children.Length == 0) return;
 
-        // "_on"이 포함된 자식 오브젝트 필터링
         List<Transform> onChildren = new List<Transform>();
         foreach (Transform child in children)
         {
@@ -79,24 +77,37 @@ public class ReactionModeManager : MonoBehaviour
             }
         }
 
-        // "_on" 자식이 없으면 반환
         if (onChildren.Count == 0)
         {
             Debug.LogWarning("활성화 가능한 '_on' 자식 오브젝트가 없습니다.");
             return;
         }
 
-        // 랜덤으로 하나 선택하여 활성화
         Transform randomChild = onChildren[Random.Range(0, onChildren.Count)];
         randomChild.gameObject.SetActive(true);
 
-        // Renderer 활성화
+        // Renderer 활성화 및 Material 확인
         Renderer renderer = randomChild.GetComponent<Renderer>();
-        if (renderer != null && !renderer.enabled)
+        if (renderer != null)
         {
             renderer.enabled = true;
+
+            // Material이 올바르게 설정되었는지 확인
+            if (renderer.material == null)
+            {
+                Debug.LogWarning($"{randomChild.name}에 Material이 설정되지 않았습니다.");
+            }
+            else
+            {
+                Debug.Log($"{randomChild.name}에 설정된 Material: {renderer.material.name}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"{randomChild.name}에 Renderer가 없습니다.");
         }
 
         Debug.Log($"랜덤 활성화: {randomChild.name}");
     }
+
 }
