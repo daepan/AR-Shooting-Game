@@ -13,6 +13,7 @@ public class UIManager : MonoBehaviour
     public GameObject howtoPlay;            // How to Play 화면
     public GameObject canvasUI;             // 타겟 고정 Canvas
     public GameObject inGameUI;             // In-Game UI
+    public GameObject resultUI;
     public TMP_Text scoreText;              // 점수 표시 TextMeshPro UI
     public Button gunButton;                // Gun 버튼
     public RectTransform crossHair;         // CrossHair UI
@@ -193,6 +194,41 @@ public class UIManager : MonoBehaviour
             Debug.LogError("ScoreText UI가 설정되지 않았습니다.");
         }
     }
+    public void RestartGameMode()
+    {
+        Debug.Log("다시하기 버튼: 모드를 다시 시작합니다.");
+
+        // 점수 초기화
+        score = 0;
+        UpdateScoreUI();
+
+        // 타겟 상태 초기화
+        isTargetPlaced = false;
+        if (currentTarget != null)
+        {
+            currentTarget.SetActive(false);
+            currentTarget = targetPrefab;
+            currentTarget.transform.localScale = targetScale;
+            UpdateTargetPositionAndRotation();
+        }
+
+        // UI 상태 리셋
+        inGameUI.SetActive(true);
+        resultUI.SetActive(false);
+        canvasUI.SetActive(true);
+
+        // ReactionModeManager를 찾아서 모드 재시작
+        ReactionModeManager reactionMode = FindObjectOfType<ReactionModeManager>();
+        if (reactionMode != null)
+        {
+            reactionMode.StopReactionMode(); // 기존 진행 중인 모드 종료
+            reactionMode.StartReactionMode(); // 새로 시작
+        }
+        else
+        {
+            Debug.LogError("ReactionModeManager를 찾을 수 없습니다.");
+        }
+    }
 
     public void ReturnToMainMenu()
     {
@@ -201,11 +237,13 @@ public class UIManager : MonoBehaviour
         gameMode.SetActive(false);
         canvasUI.SetActive(false);
         inGameUI.SetActive(false);
+        resultUI.SetActive(false);
 
         // 상태 초기화
         if (currentTarget != null) currentTarget.SetActive(false);
         isTargetPlaced = false;
         score = 0;
+
         UpdateScoreUI();
 
         Debug.Log("메인 메뉴로 돌아갑니다.");

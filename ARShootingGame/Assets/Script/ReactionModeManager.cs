@@ -4,7 +4,11 @@ using System.Collections.Generic;
 
 public class ReactionModeManager : MonoBehaviour
 {
-    public GameObject matrixObject; // 기존 Matrix 오브젝트
+    public GameObject matrixObject;          // 기존 Matrix 오브젝트
+    public GameObject inGameCanvas;          // InGameCanvas 참조
+    public GameObject resultCanvas;          // ResultCanvas 참조
+    public ScoreManager scoreManager;        // 점수를 관리하는 ScoreManager
+
     private bool isReactionModeActive = false; // Reaction Mode 활성화 여부
 
     public void StartReactionMode()
@@ -18,6 +22,10 @@ public class ReactionModeManager : MonoBehaviour
         // Matrix 오브젝트 활성화
         matrixObject.SetActive(true);
         isReactionModeActive = true;
+
+        // InGameCanvas 활성화 및 ResultCanvas 비활성화
+        inGameCanvas.SetActive(true);
+        resultCanvas.SetActive(false);
 
         // 랜덤 활성화 코루틴 시작
         StartCoroutine(ActivateTargetsRoutine());
@@ -39,6 +47,9 @@ public class ReactionModeManager : MonoBehaviour
         StopAllCoroutines();
 
         Debug.Log("Reaction Mode 종료: Matrix 비활성화 완료");
+
+        // 결과 화면을 보여줌
+        ShowResultCanvas();
     }
 
     private IEnumerator ActivateTargetsRoutine()
@@ -60,6 +71,12 @@ public class ReactionModeManager : MonoBehaviour
             // 대기 후 경과 시간 증가
             yield return new WaitForSeconds(interval);
             elapsedTime += interval;
+
+            // 게임이 60초 동안 실행되면 종료
+            if (elapsedTime >= 60f)
+            {
+                StopReactionMode();
+            }
         }
     }
 
@@ -86,28 +103,27 @@ public class ReactionModeManager : MonoBehaviour
         Transform randomChild = onChildren[Random.Range(0, onChildren.Count)];
         randomChild.gameObject.SetActive(true);
 
-        // Renderer 활성화 및 Material 확인
-        Renderer renderer = randomChild.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            renderer.enabled = true;
-
-            // Material이 올바르게 설정되었는지 확인
-            if (renderer.material == null)
-            {
-                Debug.LogWarning($"{randomChild.name}에 Material이 설정되지 않았습니다.");
-            }
-            else
-            {
-                Debug.Log($"{randomChild.name}에 설정된 Material: {renderer.material.name}");
-            }
-        }
-        else
-        {
-            Debug.LogWarning($"{randomChild.name}에 Renderer가 없습니다.");
-        }
-
         Debug.Log($"랜덤 활성화: {randomChild.name}");
     }
 
+    private void ShowResultCanvas()
+    {
+        // InGameCanvas 비활성화
+        inGameCanvas.SetActive(false);
+
+        // ResultCanvas 활성화
+        resultCanvas.SetActive(true);
+
+        // 결과 점수 표시
+        if (scoreManager != null)
+        {
+            // 점수를 계산하고 UI 업데이트
+            scoreManager.DisplayResults();
+            Debug.Log("결과 점수 표시 완료");
+        }
+        else
+        {
+            Debug.LogError("ScoreManager가 설정되지 않았습니다.");
+        }
+    }
 }
