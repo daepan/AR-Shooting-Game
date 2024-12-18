@@ -16,6 +16,7 @@
 ```
 Assets
 ├── Art
+│   ├── Font      # 폰트
 │   ├── Material  # 재질 에셋 
 │   ├── Model     # 모델링 파일 e.g. fbx
 │   ├── Prefab    # 오브젝트 프리팹
@@ -23,9 +24,5 @@ Assets
 │   ├── Texture   # 텍스처 에셋
 │   └── UI        # 인터페이스, 2D Sprite
 │
-├── Scenes
-│
-└── Script
-    ├── asdf      # 스크립트
-    └── qwer      # 스크립트
+└── Script        # 스크립트
 ```
