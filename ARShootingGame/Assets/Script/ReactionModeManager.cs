@@ -104,6 +104,21 @@ public class ReactionModeManager : MonoBehaviour
         randomChild.gameObject.SetActive(true);
 
         Debug.Log($"랜덤 활성화: {randomChild.name}");
+
+        // 3초 후 비활성화 코루틴 시작
+        StartCoroutine(DeactivateTargetAfterDelay(randomChild));
+    }
+
+    private IEnumerator DeactivateTargetAfterDelay(Transform target)
+    {
+        yield return new WaitForSeconds(3f); // 3초 대기
+
+        // 타겟이 여전히 활성 상태인지 확인 후 비활성화
+        if (target.gameObject.activeSelf)
+        {
+            target.gameObject.SetActive(false);
+            Debug.Log($"타겟 자동 비활성화: {target.name}");
+        }
     }
 
     private void ShowResultCanvas()
