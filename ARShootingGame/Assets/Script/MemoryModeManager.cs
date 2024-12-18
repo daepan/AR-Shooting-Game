@@ -30,27 +30,12 @@ public class MemoryModeManager : MonoBehaviour
         resultCanvas.SetActive(false);
         inGameCanvas.SetActive(true);
 
-        ActivateAllOnObjects();
         InitializeMaterials();
         StartCoroutine(ShowMaterialsTemporarily());
 
         // 점수 초기화
         score = 0;
         UpdateScoreText();
-    }
-
-    private void ActivateAllOnObjects()
-    {
-        // 모든 `_on` 객체를 활성화
-        Transform[] children = matrixObject.GetComponentsInChildren<Transform>(true);
-        foreach (Transform child in children)
-        {
-            if (child.name.Contains("_on"))
-            {
-                child.gameObject.SetActive(true);
-            }
-        }
-        Debug.Log("모든 `_on` 객체가 활성화되었습니다.");
     }
 
     private void InitializeMaterials()
@@ -66,16 +51,18 @@ public class MemoryModeManager : MonoBehaviour
         int index = 0;
         foreach (Transform child in children)
         {
-            if (child.name.Contains("_on"))
+            Renderer renderer = child.GetComponent<Renderer>();
+            if (renderer != null && index < shuffledMaterials.Count)
             {
-                Renderer renderer = child.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    originalMaterials[child] = shuffledMaterials[index];
-                    renderer.material = shuffledMaterials[index];
-                    index++;
-                }
+                originalMaterials[child] = shuffledMaterials[index];
+                renderer.material = shuffledMaterials[index];
+                index++;
             }
+        }
+
+        if (index < shuffledMaterials.Count)
+        {
+            Debug.LogWarning("자식 개수가 부족하여 일부 메테리얼이 할당되지 않았습니다.");
         }
     }
 
@@ -205,7 +192,6 @@ public class MemoryModeManager : MonoBehaviour
         // 결과 점수 표시
         if (scoreManager != null)
         {
-            // 점수를 계산하고 UI 업데이트
             scoreManager.DisplayResults();
             Debug.Log("결과 점수 표시 완료");
         }

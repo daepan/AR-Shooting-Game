@@ -33,6 +33,9 @@ public class UIManager : MonoBehaviour
     public Vector3 targetScale = new Vector3(0.5f, 0.5f, 0.5f);
     public LayerMask targetLayer;
 
+    public Material defaultMaterial;        // 기본 상태 Material
+    public Material targetOnMaterial;       // 활성화 상태 Material
+
     private LineRenderer lineRenderer;
     private GameMode currentMode;           // 현재 선택된 게임 모드
     private GameObject currentTarget;       // 현재 타겟 참조
@@ -199,14 +202,18 @@ public class UIManager : MonoBehaviour
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer))
         {
             GameObject hitObject = hit.collider.gameObject;
+            Renderer renderer = hitObject.GetComponent<Renderer>();
 
-            if (currentMode == GameMode.Reaction)
+            if (renderer != null && renderer.sharedMaterial != null)
             {
-                HandleReactionModeHit(hitObject);
-            }
-            else if (currentMode == GameMode.Memory)
-            {
-                HandleMemoryModeHit(hitObject);
+                if (currentMode == GameMode.Reaction)
+                {
+                    HandleReactionModeHit(renderer);
+                }
+                else if (currentMode == GameMode.Memory)
+                {
+                    HandleMemoryModeHit(hitObject);
+                }
             }
         }
         else
@@ -215,13 +222,13 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void HandleReactionModeHit(GameObject hitObject)
+    private void HandleReactionModeHit(Renderer targetRenderer)
     {
-        if (hitObject.name.Contains("_on") && hitObject.activeSelf)
+        if (targetRenderer.sharedMaterial != null && targetRenderer.sharedMaterial.name == targetOnMaterial.name)
         {
-            hitObject.SetActive(false);
+            targetRenderer.sharedMaterial = defaultMaterial; // 기본 상태로 초기화
             AddScore(10);
-            Debug.Log($"Reaction Mode 명중: {hitObject.name}");
+            Debug.Log("Reaction Mode 명중!");
         }
         else
         {
@@ -265,6 +272,7 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(true);
         gameMode.SetActive(false);
         canvasUI.SetActive(false);
+
         inGameUI.SetActive(false);
         resultUI.SetActive(false);
         howtoPlay.SetActive(false);
