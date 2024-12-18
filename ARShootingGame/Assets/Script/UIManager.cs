@@ -36,6 +36,11 @@ public class UIManager : MonoBehaviour
     public Material defaultMaterial;        // 기본 상태 Material
     public Material targetOnMaterial;       // 활성화 상태 Material
 
+    [Header("Audio Settings")]
+    public AudioClip backgroundMusic; // 배경 음악 클립
+    public AudioClip shootSound;       // 슈팅 소리 클립
+    private AudioSource audioSource;   // 오디오 소스
+
     private LineRenderer lineRenderer;
     private GameMode currentMode;           // 현재 선택된 게임 모드
     private GameObject currentTarget;       // 현재 타겟 참조
@@ -60,6 +65,13 @@ public class UIManager : MonoBehaviour
         GameObject lineObject = Instantiate(linePrefab);
         lineRenderer = lineObject.GetComponent<LineRenderer>();
         lineRenderer.enabled = false; // 초기에는 비활성화
+
+        // 오디오 소스 초기화 및 배경 음악 재생 추가
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.clip = backgroundMusic; // 배경 음악 클립 설정
+        audioSource.loop = true; // 반복 재생 설정
+        audioSource.volume = 0.5f; // 전체 음악 볼륨 조절
+        audioSource.Play(); // 배경 음악 시작
     }
 
     public void StartGame()
@@ -90,6 +102,7 @@ public class UIManager : MonoBehaviour
         gameMode.SetActive(false);
         canvasUI.SetActive(true);
         UpdateTargetPositionAndRotation();
+        targetPrefab.SetActive(true);
         Debug.Log("Reaction 모드 선택");
     }
 
@@ -99,6 +112,7 @@ public class UIManager : MonoBehaviour
         gameMode.SetActive(false);
         canvasUI.SetActive(true);
         UpdateTargetPositionAndRotation();
+        targetPrefab.SetActive(true);
         Debug.Log("Memory 모드 선택");
     }
     public void RestartGameMode()
@@ -199,6 +213,9 @@ public class UIManager : MonoBehaviour
 
         RaycastHit hit;
 
+        // 슈팅 소리 재생
+        audioSource.PlayOneShot(shootSound);
+
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer))
         {
             GameObject hitObject = hit.collider.gameObject;
@@ -206,6 +223,9 @@ public class UIManager : MonoBehaviour
 
             if (renderer != null && renderer.sharedMaterial != null)
             {
+                // 0.2초 후에 맞춘 소리 재생
+                Invoke("PlayHitSound", 0.2f); // 0.2초 후에 PlayHitSound 메소드 호출
+
                 if (currentMode == GameMode.Reaction)
                 {
                     HandleReactionModeHit(renderer);
@@ -242,6 +262,7 @@ public class UIManager : MonoBehaviour
         if (memoryMode != null)
         {
             memoryMode.HandleHit(hitObject.transform);
+
         }
         else
         {
