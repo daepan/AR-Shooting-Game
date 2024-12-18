@@ -35,9 +35,13 @@ public class UIManager : MonoBehaviour
     private int score = 0;                  // 점수
     private List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
+    public AudioClip fireSound; // 발사 소리 클립
+    private AudioSource audioSource; // 오디오 소스 변수
 
     private void Start()
     {
+        audioSource = gameObject.AddComponent<AudioSource>(); // 오디오 소스 컴포넌트
+
         // 초기 UI 상태 설정
         mainMenu.SetActive(true);
         gameMode.SetActive(false);
@@ -143,6 +147,8 @@ public class UIManager : MonoBehaviour
 
 
             Debug.Log($"충돌 객체: {hitObject.name}, Layer: {LayerMask.LayerToName(hitObject.layer)}");
+
+            audioSource.PlayOneShot(fireSound);
 
             // "_on" 상태의 타겟인지 확인
             if (hitObject.name.Contains("_on") && hitObject.activeSelf)
