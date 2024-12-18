@@ -277,7 +277,6 @@ public class UIManager : MonoBehaviour
         resultUI.SetActive(false);
         howtoPlay.SetActive(false);
 
-        if (currentTarget != null) currentTarget.SetActive(false);
         isTargetPlaced = false;
         score = 0;
         UpdateScoreUI();
