@@ -5045,6 +5045,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 949037512}
+  - component: {fileID: 949037513}
   m_Layer: 0
   m_Name: MemoryModeManager
   m_TagString: Untagged
@@ -5067,6 +5068,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &949037513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949037511}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d16bc6a9fdca84fd4bb8e236eb3fa3de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  matrixObject: {fileID: 270400423}
+  materials:
+  - {fileID: 2100000, guid: 3c7a79e30201d4c7496aff9e293ec028, type: 2}
+  - {fileID: 2100000, guid: 4a0fb9bc2797c4f1c8f5fab506f3ee3d, type: 2}
+  - {fileID: 2100000, guid: ff4a31080b72849f68c254a04c2d1285, type: 2}
+  - {fileID: 2100000, guid: ed76b88d236b7471a8963402a18e9ed8, type: 2}
+  - {fileID: 2100000, guid: 9fd517217cc244532a6cf3e1aecb6c57, type: 2}
+  - {fileID: 2100000, guid: 8c68339d291164ce1badc536e96bb869, type: 2}
+  - {fileID: 2100000, guid: 137b487dfa55d49568b815cbd6d5ad9e, type: 2}
+  - {fileID: 2100000, guid: f4e1a31c3c73440fe997be677c5d327f, type: 2}
+  blackMaterial: {fileID: 2100000, guid: 5e75e5e09f334ef4e8ba18d4c3be7846, type: 2}
+  resultCanvas: {fileID: 304334543}
+  inGameCanvas: {fileID: 1051773560}
+  scoreText: {fileID: 576816092}
+  scoreManager: {fileID: 1127237131}
 --- !u!1 &985332410
 GameObject:
   m_ObjectHideFlags: 0
