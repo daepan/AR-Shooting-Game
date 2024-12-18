@@ -238,6 +238,7 @@ public class UIManager : MonoBehaviour
         canvasUI.SetActive(false);
         inGameUI.SetActive(false);
         resultUI.SetActive(false);
+        howtoPlay.SetActive(false);
 
         // 상태 초기화
         if (currentTarget != null) currentTarget.SetActive(false);

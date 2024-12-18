@@ -56,8 +56,8 @@ public class ScoreManager : MonoBehaviour
     private void UpdateUI()
     {
         // UI에 계산된 값 표시
-        hitsCountText.text = $"맞힌 갯수: 10 x {hitsCount}";
-        bonusScoreText.text = $"추가 점수: 0.1 x {bonusScore:F1}"; // 소수점 1자리까지 표시
-        totalScoreText.text = $"최종 점수: {totalScore}";
+        hitsCountText.text = $"10 x {hitsCount}";
+        bonusScoreText.text = $"0.1 x {bonusScore:F1}"; // 소수점 1자리까지 표시
+        totalScoreText.text = $"{totalScore}";
     }
 }
